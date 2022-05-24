@@ -15,6 +15,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
 using Microsoft.UI.Xaml.Data;
+using Audibly.Helpers;
+using Audibly.Pages;
+using Windows.UI.WindowManagement;
 
 namespace Audibly;
 
@@ -22,6 +25,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly ApplicationDataContainer _localSettings;
     private string _curPosStg;
+    private Microsoft.UI.Windowing.AppWindow _mainWindow;
 
     public MainWindow()
     {
@@ -30,12 +34,19 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
-        ViewModel = new AudiobookViewModel();
+        // ViewModel = new AudiobookViewModel();
 
         _localSettings = ApplicationData.Current.LocalSettings;
 #if DEBUG
         // _localSettings.Values.Clear();
 #endif
+
+        CoverImage_Grid.PointerEntered += CoverImage_Grid_PointerEntered;
+        CoverImage_Grid.PointerExited += CoverImage_Grid_PointerExited;
+
+        MediaButtons_Control.SkipBack10Button.Click += SkipBack10Button_Click;
+        MediaButtons_Control.PlayPauseButton.Click += PlayPauseButton_Click;
+        MediaButtons_Control.SkipForward30Button.Click += SkipForward30Button_Click;
 
         MediaPlayerElementContainer!.Child = MediaPlayerElement;
         MediaPlayer.AutoPlay = false;
@@ -47,16 +58,26 @@ public sealed partial class MainWindow : Window
         // play/pause button disabled until an audio file is successfully opened
         ToggleAudioControls(false);
 
-        CurrentTime_TextBlock.Opacity = 0.5;
-        CurrentChapterDuration_TextBlock.Opacity = 0.5;
+        Progress_Control.CurrentTime_TextBlock.Opacity = 0.5;
+        Progress_Control.CurrentChapterDuration_TextBlock.Opacity = 0.5;
         if (_localSettings.Values["currentAudiobookPath"] != null)
         {
             var currentAudiobookPath = _localSettings.Values["currentAudiobookPath"].ToString();
-            ViewModel.Audiobook.Init(currentAudiobookPath);
+            AudiobookViewModel.Audiobook.Init(currentAudiobookPath);
 
             var file = StorageFile.GetFileFromPathAsync(currentAudiobookPath).GetAwaiter().GetResult(); // gross
             MediaPlayerElement_Init(file);
         }
+    }
+
+    private void CoverImage_Grid_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (BlackOverlay_Canvas.Visibility == Visibility.Visible) BlackOverlay_Canvas.Visibility = Visibility.Collapsed;
+    }
+
+    private void CoverImage_Grid_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (BlackOverlay_Canvas.Visibility == Visibility.Collapsed) BlackOverlay_Canvas.Visibility = Visibility.Visible;
     }
 
     private TimeSpan CurPos
@@ -76,7 +97,21 @@ public sealed partial class MainWindow : Window
 
     public MediaPlayerElement MediaPlayerElement { get; } = new() { AreTransportControlsEnabled = false };
 
-    public AudiobookViewModel ViewModel { get; set; }
+    private void CompactViewButton_Click(object sender, RoutedEventArgs e)
+    {
+
+
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        Microsoft.UI.WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+        Microsoft.UI.Windowing.AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+        _mainWindow = appWindow;
+        _mainWindow.Hide();
+
+        var newWindow = WindowHelper.CreateWindow();
+        var compactPage = new CompactPage();
+        newWindow.Content = compactPage;
+        newWindow.Activate();
+    }
 
     private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
     {
@@ -85,20 +120,20 @@ public sealed partial class MainWindow : Window
             case MediaPlaybackState.Playing:
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if ((string)PlayPauseButton.Tag != "pause")
+                    if ((string)MediaButtons_Control.PlayPauseButton.Tag != "pause")
                     {
-                        PlayPauseButton.Tag = "pause";
-                        PlayPauseIcon.Symbol = Symbol.Pause;
+                        MediaButtons_Control.PlayPauseButton.Tag = "pause";
+                        MediaButtons_Control.PlayPauseIcon.Symbol = Symbol.Pause;
                     }
                 });
                 break;
             case MediaPlaybackState.Paused:
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if ((string)PlayPauseButton.Tag != "play")
+                    if ((string)MediaButtons_Control.PlayPauseButton.Tag != "play")
                     {
-                        PlayPauseButton.Tag = "play";
-                        PlayPauseIcon.Symbol = Symbol.Play;
+                        MediaButtons_Control.PlayPauseButton.Tag = "play";
+                        MediaButtons_Control.PlayPauseIcon.Symbol = Symbol.Play;
                     }
                 });
                 break;
@@ -109,8 +144,8 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            ViewModel.Audiobook.Update(MediaPlayer.PlaybackSession.Position.TotalMilliseconds);
-            ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(ViewModel.Audiobook.CurChptr);
+            AudiobookViewModel.Audiobook.Update(MediaPlayer.PlaybackSession.Position.TotalMilliseconds);
+            ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(AudiobookViewModel.Audiobook.CurChptr);
             SaveProgress();
         });
     }
@@ -129,7 +164,7 @@ public sealed partial class MainWindow : Window
         if (file is null) return;
 
         _localSettings.Values["currentAudiobookPath"] = file.Path;
-        ViewModel.Audiobook.Init(file.Path);
+        AudiobookViewModel.Audiobook.Init(file.Path);
 
         MediaPlayerElement_Init(file);
     }
@@ -139,7 +174,7 @@ public sealed partial class MainWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             MediaPlayer.Source = MediaSource.CreateFromStorageFile(file);
-            ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(ViewModel.Audiobook.CurChptr);
+            ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(AudiobookViewModel.Audiobook.CurChptr);
             ToggleAudioControls(true);
         });
     }
@@ -148,7 +183,7 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            var curBookName = Path.GetFileNameWithoutExtension(ViewModel.Audiobook.FilePath);
+            var curBookName = Path.GetFileNameWithoutExtension(AudiobookViewModel.Audiobook.FilePath);
             _curPosStg = _curPosStg != curBookName ? curBookName : _curPosStg;
 
             if (_localSettings.Values[_curPosStg!] == null)
@@ -174,16 +209,16 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         { 
-            PlayPauseButton.IsEnabled = isEnabled;
+            MediaButtons_Control.PlayPauseButton.IsEnabled = isEnabled;
             PreviousChapterButton.IsEnabled = isEnabled;
-            SkipBack10Button.IsEnabled = isEnabled;
-            SkipForward30Button.IsEnabled = isEnabled;
+            MediaButtons_Control.SkipBack10Button.IsEnabled = isEnabled;
+            MediaButtons_Control.SkipForward30Button.IsEnabled = isEnabled;
             NextChapterButton.IsEnabled = isEnabled;
             ChapterCombo.IsEnabled = isEnabled;
             AudioLevel_Slider.IsEnabled = isEnabled;
 
-            CurrentTime_TextBlock.Opacity = ChapterProgress_ProgressBar.Opacity =
-                CurrentChapterDuration_TextBlock.Opacity = isEnabled ? 1.0 : 0.5;
+            Progress_Control.CurrentTime_TextBlock.Opacity = Progress_Control.ChapterProgress_ProgressBar.Opacity =
+                Progress_Control.CurrentChapterDuration_TextBlock.Opacity = isEnabled ? 1.0 : 0.5;
         });
     }
 
@@ -191,7 +226,7 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            if ((string)PlayPauseButton.Tag == "play")
+            if ((string)MediaButtons_Control.PlayPauseButton.Tag == "play")
                 MediaPlayer.Play();
             else
                 MediaPlayer.Pause();
@@ -200,14 +235,14 @@ public sealed partial class MainWindow : Window
 
     private void NextChapterButton_Click(object sender, RoutedEventArgs e)
     {
-        CurPos = ViewModel.Audiobook.GetNextChapter();
-        ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(ViewModel.Audiobook.CurChptr);
+        CurPos = AudiobookViewModel.Audiobook.GetNextChapter();
+        ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(AudiobookViewModel.Audiobook.CurChptr);
     }
 
     private void PreviousChapterButton_Click(object sender, RoutedEventArgs e)
     {
-        CurPos = ViewModel.Audiobook.GetPrevChapter(CurPos.TotalMilliseconds);
-        ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(ViewModel.Audiobook.CurChptr);
+        CurPos = AudiobookViewModel.Audiobook.GetPrevChapter(CurPos.TotalMilliseconds);
+        ChapterCombo.SelectedIndex = ChapterCombo.Items.IndexOf(AudiobookViewModel.Audiobook.CurChptr);
     }
 
     private void SkipForward30Button_Click(object sender, RoutedEventArgs e)
@@ -231,7 +266,7 @@ public sealed partial class MainWindow : Window
         var container = sender as ComboBox;
         if (container == null || container.SelectedItem is not Demuxer.Chapter chapter) return;
 
-        if (ChapterCombo.SelectedIndex == ChapterCombo.Items.IndexOf(ViewModel.Audiobook.CurChptr)) return;
+        if (ChapterCombo.SelectedIndex == ChapterCombo.Items.IndexOf(AudiobookViewModel.Audiobook.CurChptr)) return;
 
         CurPos = TimeSpan.FromMilliseconds(chapter.StartTime);
     }
@@ -242,7 +277,7 @@ public sealed partial class MainWindow : Window
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            ViewModel.Audiobook.AudioLevelGlyph = volume == 0 ? Audiobook.Volume0 : volume <= 33 ? Audiobook.Volume1 : volume <= 66 ? Audiobook.Volume2 : Audiobook.Volume3;
+            AudiobookViewModel.Audiobook.AudioLevelGlyph = volume == 0 ? Audiobook.Volume0 : volume <= 33 ? Audiobook.Volume1 : volume <= 66 ? Audiobook.Volume2 : Audiobook.Volume3;
             MediaPlayer.Volume = volume / 100;
         });
     }

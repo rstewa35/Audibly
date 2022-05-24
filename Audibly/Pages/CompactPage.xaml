@@ -1,0 +1,119 @@
+﻿<Page
+    x:Class="Audibly.Pages.CompactPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Audibly.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:Audibly.Model"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Viewbox
+            x:Name="AudioBookCover_ViewBox"
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="0"
+            Stretch="UniformToFill"
+            StretchDirection="Both">
+            <Border BorderBrush="Transparent" BorderThickness="0">
+                <Image Source="{x:Bind model:AudiobookViewModel.Audiobook.CoverImgSrc}" />
+            </Border>
+        </Viewbox>
+
+        <Canvas
+            x:Name="BlackOverlay_Canvas"
+            Background="Black"
+            Opacity="0.85"
+            Visibility="Collapsed" />
+
+        <Grid x:Name="PlayerControls_Grid" Visibility="Collapsed">
+
+            <!--<Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>-->
+
+            <Grid>
+
+                <StackPanel
+                    Height="44"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="5">
+
+                    <Button
+                        x:Name="SkipBack10Button"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="SkipBack10Button_Click"
+                        ToolTipService.ToolTip="Skip backward 10 seconds">
+                        <Image Source="/Assets/SkipBackward10_44x44.png" />
+                    </Button>
+
+                    <Button
+                        x:Name="PlayPauseButton"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="PlayPauseButton_Click"
+                        ToolTipService.ToolTip="Play">
+                        <Image Source="/Assets/Play_44x44.png" />
+                        <!--<Image Source="{x:Bind ViewModel.Audiobook.CoverImgSrc}" />-->
+                    </Button>
+
+                    <Button
+                        x:Name="SkipForward30Button"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="SkipForward30Button_Click"
+                        ToolTipService.ToolTip="Skip forward 30 seconds">
+                        <Image Source="/Assets/SkipForward30_44x44.png" />
+                    </Button>
+
+                </StackPanel>
+
+            </Grid>
+            <Grid
+                x:Name="ProgressGrid"
+                Margin="0,0,0,10"
+                HorizontalAlignment="Center">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    x:Name="CurrentTime_TextBlock"
+                    Grid.Column="0"
+                    HorizontalAlignment="Left"
+                    Foreground="#9d9d9d"
+                    Text="00:00" />
+                <!--  Text="{x:Bind ViewModel.Audiobook.CurTimeText}"  -->
+
+                <ProgressBar
+                    x:Name="ChapterProgress_ProgressBar"
+                    Grid.Column="1"
+                    Width="175" />
+                <!--
+                    Maximum="{x:Bind ViewModel.Audiobook.CurChptrDur}"
+                    Value="{x:Bind ViewModel.Audiobook.CurTimeMs}" />
+                -->
+
+                <TextBlock
+                    x:Name="CurrentChapterDuration_TextBlock"
+                    Grid.Column="2"
+                    HorizontalAlignment="Right"
+                    Foreground="#9d9d9d"
+                    Text="00:00" />
+                <!--  Text="{x:Bind ViewModel.Audiobook.CurChptrDurText}"  -->
+            </Grid>
+
+            <!--<src:ChapterControl x:Name="ChapterControls" Grid.Row="0" />-->
+
+        </Grid>
+
+    </Grid>
+</Page>

@@ -103,11 +103,23 @@
 	  <None Remove="Assets\Square44x44Logo.scale-400.png" />
 	  <None Remove="Assets\Wide310x150Logo.scale-100.png" />
 	  <None Remove="Assets\Wide310x150Logo.scale-400.png" />
+	  <None Remove="Pages\CompactPage.xaml" />
+	  <None Remove="UserControls\MediaPlaybackButtons.xaml" />
+	  <None Remove="UserControls\ProgressControl.xaml" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Assets\Logo\Icon\128w\book-open-flat.png">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	  </None>
+	  <Page Update="UserControls\ProgressControl.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	  <Page Update="UserControls\MediaPlaybackButtons.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	  <Page Update="Pages\CompactPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 </Project>

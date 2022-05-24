@@ -273,5 +273,5 @@ public class Audiobook : BindableBase
 
 public class AudiobookViewModel
 {
-    public Audiobook Audiobook { get; } = new();
+    public static Audiobook Audiobook { get; } = new();
 }

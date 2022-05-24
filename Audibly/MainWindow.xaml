@@ -5,6 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Audibly"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:Audibly.Model"
+    xmlns:uc="using:Audibly.UserControls"
     x:DefaultBindMode="OneWay"
     mc:Ignorable="d">
 
@@ -65,20 +67,37 @@
             <!--#endregion MediaPlayerElementContainer-->
 
             <!--#region Book Cover Image-->
-            <Border
-                Grid.Row="0"
-                Width="275"
-                Height="275"
-                Margin="0,0,0,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                BorderBrush="transparent"
-                BorderThickness="1"
-                CornerRadius="10">
-                <Border.Background>
-                    <ImageBrush ImageSource="{x:Bind ViewModel.Audiobook.CoverImgSrc}" Stretch="UniformToFill" />
-                </Border.Background>
-            </Border>
+            <Grid x:Name="CoverImage_Grid">
+                <Border
+                    Grid.Row="0"
+                    Width="275"
+                    Height="275"
+                    Margin="0,0,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderBrush="transparent"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{x:Bind model:AudiobookViewModel.Audiobook.CoverImgSrc}" Stretch="UniformToFill" />
+                    </Border.Background>
+                </Border>
+                <Canvas
+                    x:Name="BlackOverlay_Canvas"
+                    Background="Black"
+                    Opacity="0.85"
+                    Visibility="Collapsed" />
+                <Button
+                    x:Name="CompactViewButton"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="CompactViewButton_Click"
+                    ToolTipService.ToolTip="CompactView">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE740;" />
+                </Button>
+            </Grid>
             <!--#endregion Book Cover Image-->
 
             <!--#region Chapter Grid-->
@@ -117,7 +136,7 @@
                     Background="Transparent"
                     BorderThickness="0"
                     DisplayMemberPath="Title"
-                    ItemsSource="{x:Bind ViewModel.Audiobook.Chptrs}"
+                    ItemsSource="{x:Bind model:AudiobookViewModel.Audiobook.Chptrs}"
                     SelectedIndex="0"
                     SelectionChanged="ChapterCombo_SelectionChanged" />
 
@@ -136,8 +155,10 @@
             </Grid>
             <!--#endregion-->
 
+            <uc:ProgressControl x:Name="Progress_Control" Grid.Row="2" />
+
             <!--#region Current Time & Progress-->
-            <Grid
+            <!--<Grid
                 x:Name="ProgressGrid"
                 Grid.Row="2"
                 Width="275"
@@ -158,7 +179,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Foreground="#9d9d9d"
-                    Text="{x:Bind ViewModel.Audiobook.CurTimeText}"
+                    Text="{x:Bind model:AudiobookViewModel.Audiobook.CurTimeText}"
                     TextAlignment="Left" />
 
                 <ProgressBar
@@ -169,8 +190,8 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Foreground="#84e2c9"
-                    Maximum="{x:Bind ViewModel.Audiobook.CurChptrDur}"
-                    Value="{x:Bind ViewModel.Audiobook.CurTimeMs}" />
+                    Maximum="{x:Bind model:AudiobookViewModel.Audiobook.CurChptrDur}"
+                    Value="{x:Bind model:AudiobookViewModel.Audiobook.CurTimeMs}" />
 
                 <TextBlock
                     x:Name="CurrentChapterDuration_TextBlock"
@@ -179,137 +200,89 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="#9d9d9d"
-                    Text="{x:Bind ViewModel.Audiobook.CurChptrDurText}"
+                    Text="{x:Bind model:AudiobookViewModel.Audiobook.CurChptrDurText}"
                     TextAlignment="Right" />
+            </Grid>-->
+            <!--#endregion-->
+
+            <!--#region MediaButton_Grid-->
+            <Grid x:Name="MediaButton_Grid" Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    x:Name="OpenAudiobookButton"
+                    Grid.Column="0"
+                    Margin="2,5,0,0"
+                    HorizontalAlignment="Left"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="OpenAudiobook_Click"
+                    ToolTipService.ToolTip="Open Audiobook">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8E5;" />
+                </Button>
+
+                <uc:MediaPlaybackButtons x:Name="MediaButtons_Control" Grid.Column="1" />
+
+                <!--#region VolumeLevelButton-->
+                <Button
+                    Grid.Column="2"
+                    HorizontalAlignment="Right"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ToolTipService.ToolTip="Volume Level">
+                    <FontIcon
+                        x:Name="AudioLevel_Button_Icon"
+                        FontFamily="Segoe MDL2 Assets"
+                        Glyph="{x:Bind model:AudiobookViewModel.Audiobook.AudioLevelGlyph}" />
+                    <Button.Flyout>
+                        <Flyout>
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="MinWidth" Value="30" />
+                                    <Setter Property="MaxWidth" Value="30" />
+                                    <Setter Property="MinHeight" Value="125" />
+                                    <Setter Property="CornerRadius" Value="5" />
+                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
+                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <Grid>
+                                <Slider
+                                    x:Name="AudioLevel_Slider"
+                                    Margin="-15,0,0,0"
+                                    AutomationProperties.Name="AudioLevelSlider"
+                                    Foreground="#84e2c9"
+                                    Maximum="100"
+                                    Minimum="0"
+                                    Orientation="Vertical"
+                                    ToolTipService.ToolTip="Volume Level"
+                                    ValueChanged="Slider_ValueChanged"
+                                    Value="100">
+                                    <Slider.Resources>
+                                        <ResourceDictionary>
+                                            <SolidColorBrush x:Key="SliderThumbBackground">#4ac694</SolidColorBrush>
+                                            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver">#4ac694</SolidColorBrush>
+                                            <SolidColorBrush x:Key="SliderThumbBackgroundPressed">#4ac694</SolidColorBrush>
+                                            <SolidColorBrush x:Key="SliderTrackValueFill">#84e2c9</SolidColorBrush>
+                                            <SolidColorBrush x:Key="SliderTrackValueFillPressed">#84e2c9</SolidColorBrush>
+                                            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver">#84e2c9</SolidColorBrush>
+                                        </ResourceDictionary>
+                                    </Slider.Resources>
+                                </Slider>
+                            </Grid>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <!--#endregion VolumeLevelButton-->
+
             </Grid>
             <!--#endregion-->
-
-            <!--#region OpenAudioBookButton-->
-            <Button
-                x:Name="OpenAudiobookButton"
-                Grid.Row="3"
-                Margin="2,5,0,0"
-                HorizontalAlignment="Left"
-                Background="Transparent"
-                BorderThickness="0"
-                Click="OpenAudiobook_Click"
-                ToolTipService.ToolTip="Open Audiobook">
-                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8E5;" />
-            </Button>
-            <!--#endregion OpenAudioBookButton-->
-
-            <!--#region Audio Playback Controls-->
-
-            <StackPanel
-                Grid.Row="3"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-
-                <StackPanel.Resources>
-                    <ResourceDictionary>
-                        <SolidColorBrush x:Key="ButtonBackground">Transparent</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver">Transparent</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonBackgroundPressed">Transparent</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonBackgroundDisabled">Transparent</SolidColorBrush>
-
-                        <SolidColorBrush x:Key="ButtonForeground">#4ac694</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonForegroundPressed">#80D7B4</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonForegroundPointerOver">#B6E8D4</SolidColorBrush>
-                        <SolidColorBrush x:Key="ButtonForegroundDisabled">#163B2C</SolidColorBrush>
-                    </ResourceDictionary>
-                </StackPanel.Resources>
-
-                <Button
-                    x:Name="SkipBack10Button"
-                    BorderThickness="0"
-                    Click="SkipBack10Button_Click"
-                    ToolTipService.ToolTip="Skip backward 10 seconds">
-                    <FontIcon
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="24"
-                        Glyph="&#xED3C;" />
-                </Button>
-
-                <Button
-                    x:Name="PlayPauseButton"
-                    BorderThickness="0"
-                    Click="PlayPauseButton_Click"
-                    Tag="play"
-                    ToolTipService.ToolTip="Play/Pause">
-                    <Viewbox MaxWidth="24" MaxHeight="24">
-                        <SymbolIcon x:Name="PlayPauseIcon" Symbol="Play" />
-                    </Viewbox>
-                </Button>
-
-                <Button
-                    x:Name="SkipForward30Button"
-                    BorderThickness="0"
-                    Click="SkipForward30Button_Click"
-                    ToolTipService.ToolTip="Skip forward 30 seconds">
-                    <FontIcon
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="24"
-                        Glyph="&#xED3D;" />
-                </Button>
-
-            </StackPanel>
-
-            <!--#endregion-->
-
-            <!--#region VolumeLevelButton-->
-            <Button
-                Grid.Row="3"
-                HorizontalAlignment="Right"
-                Background="Transparent"
-                BorderThickness="0"
-                ToolTipService.ToolTip="Volume Level">
-                <FontIcon
-                    x:Name="AudioLevel_Button_Icon"
-                    FontFamily="Segoe MDL2 Assets"
-                    Glyph="{x:Bind ViewModel.Audiobook.AudioLevelGlyph}" />
-                <Button.Flyout>
-                    <Flyout>
-                        <Flyout.FlyoutPresenterStyle>
-                            <Style TargetType="FlyoutPresenter">
-                                <Setter Property="MinWidth" Value="30" />
-                                <Setter Property="MaxWidth" Value="30" />
-                                <Setter Property="MinHeight" Value="125" />
-                                <Setter Property="CornerRadius" Value="5" />
-                                <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
-                                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
-                                <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
-                                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
-                            </Style>
-                        </Flyout.FlyoutPresenterStyle>
-                        <Grid>
-                            <Slider
-                                x:Name="AudioLevel_Slider"
-                                Margin="-15,0,0,0"
-                                AutomationProperties.Name="AudioLevelSlider"
-                                Foreground="#84e2c9"
-                                Maximum="100"
-                                Minimum="0"
-                                Orientation="Vertical"
-                                ToolTipService.ToolTip="Volume Level"
-                                ValueChanged="Slider_ValueChanged"
-                                Value="100">
-                                <Slider.Resources>
-                                    <ResourceDictionary>
-                                        <SolidColorBrush x:Key="SliderThumbBackground">#4ac694</SolidColorBrush>
-                                        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver">#4ac694</SolidColorBrush>
-                                        <SolidColorBrush x:Key="SliderThumbBackgroundPressed">#4ac694</SolidColorBrush>
-                                        <SolidColorBrush x:Key="SliderTrackValueFill">#84e2c9</SolidColorBrush>
-                                        <SolidColorBrush x:Key="SliderTrackValueFillPressed">#84e2c9</SolidColorBrush>
-                                        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver">#84e2c9</SolidColorBrush>
-                                    </ResourceDictionary>
-                                </Slider.Resources>
-                            </Slider>
-                        </Grid>
-                    </Flyout>
-                </Button.Flyout>
-            </Button>
-            <!--#endregion VolumeLevelButton-->
 
         </Grid>
     </Grid>
