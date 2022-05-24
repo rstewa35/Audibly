@@ -44,6 +44,11 @@ public sealed partial class MainWindow : Window
         MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
         MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
 
+        // VolumeLevel_Button.PointerEntered += VolumeLevel_Button_PointerEntered;
+        // VolumeLevel_Button.PointerExited += VolumeLevel_Button_PointerExited;
+        // VolumeSliderPopup.PointerEntered += VolumeSliderPopup_PointerEntered;
+        // VolumeSliderPopup.PointerExited += VolumeSliderPopup_PointerExited;
+
         // play/pause button disabled until an audio file is successfully opened
         ToggleAudioControls(false);
 
@@ -58,6 +63,26 @@ public sealed partial class MainWindow : Window
             MediaPlayerElement_Init(file);
         }
     }
+
+    // private void VolumeSliderPopup_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    // {
+
+    // }
+
+    // private void VolumeSliderPopup_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    // {
+
+    // }
+
+    // private void VolumeLevel_Button_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    // {
+    //     if (VolumeSliderPopup.IsOpen) { VolumeSliderPopup.IsOpen = false; }
+    // }
+
+    // private void VolumeLevel_Button_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    // {
+    //     if (!VolumeSliderPopup.IsOpen) { VolumeSliderPopup.IsOpen = true; }
+    // }
 
     private TimeSpan CurPos
     {
@@ -245,5 +270,10 @@ public sealed partial class MainWindow : Window
             ViewModel.Audiobook.AudioLevelGlyph = volume == 0 ? Audiobook.Volume0 : volume <= 33 ? Audiobook.Volume1 : volume <= 66 ? Audiobook.Volume2 : Audiobook.Volume3;
             MediaPlayer.Volume = volume / 100;
         });
+    }
+
+    private void VolumeLevel_Button_Click(object sender, RoutedEventArgs e)
+    {
+        if (!VolumeSliderPopup.IsOpen) { VolumeSliderPopup.IsOpen = true; }
     }
 }

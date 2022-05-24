@@ -258,7 +258,57 @@
             <!--#endregion-->
 
             <!--#region VolumeLevelButton-->
-            <Button
+            <Grid x:Name="VolumeGrid" Grid.Row="3">
+                <Button
+                    x:Name="VolumeLevel_Button"
+                    HorizontalAlignment="Right"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="VolumeLevel_Button_Click"
+                    ToolTipService.ToolTip="Volume Level">
+                    <FontIcon
+                        x:Name="AudioLevel_Button_Icon"
+                        FontFamily="Segoe MDL2 Assets"
+                        Glyph="{x:Bind ViewModel.Audiobook.AudioLevelGlyph}" />
+                </Button>
+                <Popup
+                    x:Name="VolumeSliderPopup"
+                    HorizontalOffset="260"
+                    VerticalOffset="-125">
+                    <Border
+                        Height="125"
+                        Background="#2c2e2e"
+                        BorderThickness="0"
+                        CornerRadius="5">
+                        <Slider
+                            x:Name="AudioLevel_Slider"
+                            Height="100"
+                            AutomationProperties.Name="AudioLevelSlider"
+                            Foreground="#84e2c9"
+                            Maximum="100"
+                            Minimum="0"
+                            Orientation="Vertical"
+                            ValueChanged="Slider_ValueChanged"
+                            Value="100">
+                            <Slider.Resources>
+                                <ResourceDictionary>
+                                    <SolidColorBrush x:Key="SliderThumbBackground">#4ac694</SolidColorBrush>
+                                    <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver">#4ac694</SolidColorBrush>
+                                    <SolidColorBrush x:Key="SliderThumbBackgroundPressed">#4ac694</SolidColorBrush>
+                                    <SolidColorBrush x:Key="SliderTrackValueFill">#84e2c9</SolidColorBrush>
+                                    <SolidColorBrush x:Key="SliderTrackValueFillPressed">#84e2c9</SolidColorBrush>
+                                    <SolidColorBrush x:Key="SliderTrackValueFillPointerOver">#84e2c9</SolidColorBrush>
+                                </ResourceDictionary>
+                            </Slider.Resources>
+                        </Slider>
+                    </Border>
+                </Popup>
+            </Grid>
+            <!--#endregion VolumeLevelButton-->
+
+            <!--#region VolumeLevelButton-->
+            <!--<Button
+                x:Name="VolumeLevel_Button"
                 Grid.Row="3"
                 HorizontalAlignment="Right"
                 Background="Transparent"
@@ -308,7 +358,7 @@
                         </Grid>
                     </Flyout>
                 </Button.Flyout>
-            </Button>
+            </Button>-->
             <!--#endregion VolumeLevelButton-->
 
         </Grid>
